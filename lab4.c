@@ -1,18 +1,11 @@
 #include <stdio.h>
-
-int COUNT = 51;
+#include <stdlib.h>
 
 extern int sum_array(const int *arr, int count);
 
 int main(int argc, char* argv[]){
     if (argc != 2){
         fprintf(stderr, "Missing Filename\n");
-        return 1;
-    }
-
-    int count = strtol(argv[2]);
-    if (count <= 0){
-        fprintf(stderr, "Count must be a positive integer\n");
         return 1;
     }
 
@@ -23,23 +16,31 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    int *arr = malloc(count*sizeof*arr);
+    int capacity = 16, count = 0;
+    int *arr = malloc(capacity * sizeof *arr);
     if(!arr){
         fclose(f);
         return 1;
     }
     
-    for (int i = 0; i < count; i++) {
-        if (fscanf(f, "%d", &arr[i]) != 1) {
-            fprintf(stderr, "Expected %d numbers, got %d\n", count, i);
-            free(arr);
-            fclose(f);
-            return 1;
+    int n;
+    while (fscanf(f, "%d", &n) == 1) {
+        if (count == capacity) {
+            capacity *= 2;
+            int *tmp = realloc(arr, capacity * sizeof *arr);
+            if (!tmp) {
+                free(arr);
+                fclose(f);
+                return 1;
+            }
+            arr = tmp;
         }
+        arr[count++] = n;
     }
     fclose(f);
 
     int total = sum_array(arr, count);
     printf("Sum: %d\n", total);
+    free(arr);
     return 0;
 }
